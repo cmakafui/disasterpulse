@@ -15,8 +15,15 @@ class Disaster(Base):
     date_event = Column(DateTime(timezone=True), index=True)
 
     primary_country = Column(JSON)
+    affected_countries = Column(JSON)
     primary_type = Column(JSON)
     profile = Column(JSON)
     related_glide = Column(JSON)
+
+    # AI Fields
+    timeline = Column(JSON)
+    map_analysis = Column(JSON)
+    impact_analysis = Column(JSON)
+    needs_analysis = Column(JSON)
 
     reports = relationship("Report", back_populates="disaster")

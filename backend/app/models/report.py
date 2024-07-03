@@ -1,5 +1,5 @@
 # app/models/report.py
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Text
 from sqlalchemy.orm import relationship
 from app.db.base_class import Base
 
@@ -16,11 +16,14 @@ class Report(Base):
     date_created = Column(DateTime(timezone=True), index=True)
     date_changed = Column(DateTime(timezone=True))
     date_original = Column(DateTime(timezone=True))
+    primary_country = Column(JSON)
+    affected_countries = Column(JSON)
     language = Column(JSON)
     source = Column(JSON)
     theme = Column(JSON)
     file = Column(JSON)
     headline = Column(JSON)
+    extracted_content = Column(Text)
 
     content_format_id = Column(Integer, index=True)
     content_format_name = Column(String, index=True)

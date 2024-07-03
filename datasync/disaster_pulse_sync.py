@@ -51,7 +51,7 @@ class DisasterPulseSync:
             "filter": {"field": "status", "value": ["alert", "ongoing"]},
             "profile": "full",
             "sort": ["date:desc"],
-            "limit": 200,
+            "limit": 10,
         }
         disasters_data = await self.make_api_request("disasters", params)
         if not disasters_data:
@@ -90,6 +90,7 @@ class DisasterPulseSync:
             "date_changed": self.parse_date(disaster_data.get("date", {}).get("changed")),
             "date_event": self.parse_date(disaster_data.get("date", {}).get("event")),
             "primary_country": disaster_data.get("primary_country"),
+            "affected_countries": disaster_data.get("affected_countries", []),
             "primary_type": disaster_data.get("primary_type"),
             "profile": disaster_data.get("profile"),
         }
@@ -113,7 +114,7 @@ class DisasterPulseSync:
             },
             "profile": "full",
             "sort": ["date:desc"],
-            "limit": 1  # Adjust this value as needed
+            "limit": 10  # Adjust this value as needed
         }
         reports_data = await self.make_api_request("reports", params)
         if not reports_data:
@@ -167,6 +168,8 @@ class DisasterPulseSync:
             "theme": report_data.get("theme"),
             "file": report_data.get("file"),
             "headline": report_data.get("headline"),
+            "primary_country": report_data.get("primary_country"),
+            "affected_countries": report_data.get("country", []),
         }
         
         # Extract format id and name

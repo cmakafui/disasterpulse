@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
+
 class ReportBase(BaseModel):
     disaster_id: int
     title: str
@@ -14,15 +15,19 @@ class ReportBase(BaseModel):
     source: Optional[list] = None
     theme: Optional[list] = None
     file: Optional[list] = None
+    extracted_content: Optional[str] = None
     headline: Optional[list] = None
     content_format_id: Optional[int] = None
     content_format_name: Optional[str] = None
 
+
 class ReportCreate(ReportBase):
     pass
 
+
 class ReportUpdate(ReportBase):
     pass
+
 
 class ReportInDBBase(ReportBase):
     id: int
@@ -31,8 +36,10 @@ class ReportInDBBase(ReportBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ReportInDB(ReportInDBBase):
     pass
+
 
 class Report(ReportInDBBase):
     pass

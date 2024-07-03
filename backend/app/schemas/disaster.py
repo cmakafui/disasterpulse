@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
+
 class DisasterBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -14,12 +15,19 @@ class DisasterBase(BaseModel):
     primary_type: Optional[dict] = None
     profile: Optional[dict] = None
     related_glide: Optional[list] = None
+    timeline: Optional[dict] = None
+    map_analysis: Optional[dict] = None
+    impact_analysis: Optional[dict] = None
+    needs_analysis: Optional[dict] = None
+
 
 class DisasterCreate(DisasterBase):
     pass
 
+
 class DisasterUpdate(DisasterBase):
     pass
+
 
 class DisasterInDBBase(DisasterBase):
     id: int
@@ -28,8 +36,10 @@ class DisasterInDBBase(DisasterBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class DisasterInDB(DisasterInDBBase):
     pass
+
 
 class Disaster(DisasterInDBBase):
     pass
