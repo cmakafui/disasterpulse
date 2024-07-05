@@ -22,9 +22,7 @@ class Disaster(Base):
     related_glide = Column(JSON)
 
     # AI Fields
-    timeline = Column(JSON)
+    report_analysis = Column(JSON)
     map_analysis = Column(JSON)
-    impact_analysis = Column(JSON)
-    needs_analysis = Column(JSON)
 
     reports = relationship("Report", back_populates="disaster")

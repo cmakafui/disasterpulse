@@ -15,10 +15,11 @@ class DisasterBase(BaseModel):
     primary_type: Optional[dict] = None
     profile: Optional[dict] = None
     related_glide: Optional[list] = None
-    timeline: Optional[dict] = None
+    report_analysis: Optional[dict] = None
     map_analysis: Optional[dict] = None
-    impact_analysis: Optional[dict] = None
-    needs_analysis: Optional[dict] = None
+
+    class Config:
+        from_attributes = True
 
 
 class DisasterCreate(DisasterBase):

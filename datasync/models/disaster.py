@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, JSON
 from sqlalchemy.orm import relationship
 from .base import Base
 
+
 class Disaster(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
@@ -21,9 +22,7 @@ class Disaster(Base):
     related_glide = Column(JSON)
 
     # AI Fields
-    timeline = Column(JSON)
+    report_analysis = Column(JSON)
     map_analysis = Column(JSON)
-    impact_analysis = Column(JSON)
-    needs_analysis = Column(JSON)
 
     reports = relationship("Report", back_populates="disaster")

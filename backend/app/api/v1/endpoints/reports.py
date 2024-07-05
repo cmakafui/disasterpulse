@@ -2,10 +2,11 @@ from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from app.core.config import settings
 from app.models.report import Report
 from app.schemas.report import ReportCreate, ReportUpdate, ReportInDB
 from app.api import deps
-from app.utils.pdf_extractor import extract_text_from_pdf_url
+from app.utils.pdf_extractor import extract_text_from_pdf_url, pdf_to_base64_pngs
 
 router = APIRouter()
 
@@ -66,7 +67,7 @@ async def delete_report(report_id: int, db: AsyncSession = Depends(deps.get_db))
     return {"ok": True}
 
 
-@router.get("/{report_id}/extract", response_model=dict)
+@router.get("/{report_id}/text", response_model=dict)
 async def extract_report_pdf(
     report_id: int, db: AsyncSession = Depends(deps.get_db)
 ) -> Any:
@@ -91,3 +92,36 @@ async def extract_report_pdf(
     await db.commit()
 
     return {"text": extracted_text}
+
+
+@router.get("/{report_id}/maps", response_model=dict)
+async def extract_report_images(
+    report_id: int, db: AsyncSession = Depends(deps.get_db)
+) -> dict:
+    # Get the report from the database and make sure it's a Map PDF
+    result = await db.execute(
+        select(Report).filter(
+            Report.id == report_id,
+            Report.content_format_id == settings.CONTENT_FORMAT_MAP,
+        )
+    )
+    report = result.scalar_one_or_none()
+
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    if not report.file or not isinstance(report.file, list) or len(report.file) == 0:
+        raise HTTPException(status_code=404, detail="No PDF file found for this report")
+
+    pdf_url = report.file[0].get("url")
+    if not pdf_url:
+        raise HTTPException(
+            status_code=404, detail="No valid PDF URL found for this report"
+        )
+
+    base64_pngs = await pdf_to_base64_pngs(pdf_url)
+
+    report.extracted_maps = base64_pngs
+    await db.commit()
+
+    return {"images": base64_pngs}

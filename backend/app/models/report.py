@@ -22,8 +22,8 @@ class Report(Base):
     source = Column(JSON)
     theme = Column(JSON)
     file = Column(JSON)
-    headline = Column(JSON)
-    extracted_content = Column(Text)
+    extracted_report = Column(Text)
+    extracted_maps = Column(JSON)
 
     content_format_id = Column(Integer, index=True)
     content_format_name = Column(String, index=True)

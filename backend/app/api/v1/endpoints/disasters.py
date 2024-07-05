@@ -3,13 +3,22 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from app.core.config import settings
 from app.models.disaster import Disaster
 from app.models.report import Report
 from app.schemas.disaster import DisasterCreate, DisasterUpdate, DisasterInDB
 from app.api import deps
-from app.utils.pdf_extractor import extract_text_from_pdf_url
+from app.utils.pdf_extractor import extract_text_from_pdf_url, pdf_to_base64_pngs
+from app.utils.ai_analysis import generate_map_analysis, generate_report_analysis
+from enum import Enum
 
 router = APIRouter()
+
+
+class Language(str, Enum):
+    ENGLISH = "en"
+    SPANISH = "es"
+    FRENCH = "fr"
 
 
 @router.get("/", response_model=List[DisasterInDB])
@@ -72,12 +81,13 @@ async def delete_disaster(
     return {"ok": True}
 
 
-@router.get("/{disaster_id}/analysis", response_model=dict)
-async def get_disaster_analysis(
+@router.get("/{disaster_id}/analysis", response_model=DisasterInDB)
+async def get_latest_report_analysis(
     disaster_id: int,
-    analysis_type: Literal["report", "map"] = Query(
+    type: Literal["report", "map"] = Query(
         ..., description="Type of analysis to perform"
     ),
+    lang: Language = Query(Language.ENGLISH, description="Language for the analysis"),
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     # Check if the disaster exists
@@ -88,17 +98,29 @@ async def get_disaster_analysis(
     if not disaster:
         raise HTTPException(status_code=404, detail="Disaster not found")
 
-    if analysis_type == "report":
-        return await analyze_report(disaster_id, db)
-    elif analysis_type == "map":
-        return await analyze_map(disaster_id, db)
+    if type == "report":
+        disaster.report_analysis = await analyze_report(
+            disaster_id, disaster.name, lang, db
+        )
+    elif type == "map":
+        disaster.map_analysis = await analyze_map(disaster_id, disaster.name, lang, db)
+
+    # Commit the changes to the database
+    await db.commit()
+    await db.refresh(disaster)
+    return DisasterInDB.model_validate(disaster)
 
 
-async def analyze_report(disaster_id: int, db: AsyncSession) -> dict:
+async def analyze_report(
+    disaster_id: int, disaster_name: str, lang: str, db: AsyncSession
+) -> dict:
     # Get the latest situation report for the disaster
     report_result = await db.execute(
         select(Report)
-        .filter(Report.disaster_id == disaster_id, Report.content_format_id == 10)
+        .filter(
+            Report.disaster_id == disaster_id,
+            Report.content_format_id == settings.CONTENT_FORMAT_SITUATION_REPORT,
+        )
         .order_by(desc(Report.date_created))
         .limit(1)
     )
@@ -131,38 +153,70 @@ async def analyze_report(disaster_id: int, db: AsyncSession) -> dict:
             detail="No content available for analysis in the latest report",
         )
 
-    # Perform basic analysis (word count)
-    word_count = len(extracted_text.split())
+    # Perform AI analysis on the extracted text
+    report_analysis = await generate_report_analysis(
+        disaster_name, latest_report.title, extracted_text, lang
+    )
 
     # Return the analysis results
     return {
-        "disaster_id": disaster_id,
         "latest_report_id": latest_report.id,
+        "latest_report_title": latest_report.title,
         "latest_report_date": latest_report.date_created.isoformat(),
-        "analysis_type": "report",
-        "analysis": {
-            "word_count": word_count,
-        },
+        "type": "report",
+        "analysis": report_analysis.model_dump(),
     }
 
 
-async def analyze_map(disaster_id: int, db: AsyncSession) -> dict:
-    # Retrieve the disaster to access the map_analysis field
-    disaster_result = await db.execute(
-        select(Disaster).filter(
-            Disaster.id == disaster_id, Report.content_format_id == 12
+async def analyze_map(disaster_id: int, disaster_name : str, lang: str, db: AsyncSession) -> dict:
+    # Get the latest map for the disaster
+    map_result = await db.execute(
+        select(Report)
+        .filter(
+            Report.disaster_id == disaster_id,
+            Report.content_format_id == settings.CONTENT_FORMAT_MAP,
         )
+        .order_by(desc(Report.date_created))
+        .limit(1)
     )
-    disaster = disaster_result.scalar_one_or_none()
-
-    if not disaster or not disaster.map_analysis:
+    latest_map = map_result.scalar_one_or_none()
+    if not latest_map:
         raise HTTPException(
-            status_code=404, detail="No map analysis available for this disaster"
+            status_code=404, detail="No Map found for this disaster"
         )
+    # Extract the images from the Map PDF
+    if latest_map.extracted_maps:
+        extracted_images = latest_map.extracted_maps
+    elif (
+        latest_map.file
+        and isinstance(latest_map.file, list)
+        and len(latest_map.file) > 0
+    ):
+        pdf_url = latest_map.file[0].get("url")
+        if not pdf_url:
+            raise HTTPException(
+                status_code=404, detail="No valid PDF URL found for the latest Map"
+            )
+        extracted_images = await pdf_to_base64_pngs(pdf_url)
+        # Update the map with the extracted images
+        latest_map.extracted_maps = extracted_images
+        await db.commit()
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail="No images available for analysis in the latest map",
+        )
+
+
+    # Perform AI analysis on the map images
+    map_analysis = await generate_map_analysis(
+        disaster_name, latest_map.title, latest_map.extracted_maps, lang
+    )
 
     # Return the map analysis data
     return {
         "disaster_id": disaster_id,
-        "analysis_type": "map",
-        "analysis": disaster.map_analysis,
+        "latest_map_date": latest_map.date_created.isoformat(),
+        "type": "map",
+        "analysis": map_analysis.model_dump(),
     }

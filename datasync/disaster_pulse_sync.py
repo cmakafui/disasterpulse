@@ -12,6 +12,7 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class APIClient:
     def __init__(self, base_url: str, app_name: str):
         self.base_url = base_url
@@ -27,6 +28,7 @@ class APIClient:
     async def close(self):
         await self.client.aclose()
 
+
 class DisasterPulseSync:
     def __init__(self):
         self.relief_web_api = APIClient(
@@ -34,7 +36,9 @@ class DisasterPulseSync:
         )
         self.retention_period = timedelta(days=settings.RETENTION_PERIOD_DAYS)
 
-    async def make_api_request(self, endpoint: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def make_api_request(
+        self, endpoint: str, params: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         try:
             data = await self.relief_web_api.post(endpoint, params)
             return data
@@ -86,11 +90,15 @@ class DisasterPulseSync:
             "related_glide": disaster_data.get("related_glide", []),
             "url": disaster_data.get("url"),
             "url_alias": disaster_data.get("url_alias"),
-            "date_created": self.parse_date(disaster_data.get("date", {}).get("created")),
-            "date_changed": self.parse_date(disaster_data.get("date", {}).get("changed")),
+            "date_created": self.parse_date(
+                disaster_data.get("date", {}).get("created")
+            ),
+            "date_changed": self.parse_date(
+                disaster_data.get("date", {}).get("changed")
+            ),
             "date_event": self.parse_date(disaster_data.get("date", {}).get("event")),
             "primary_country": disaster_data.get("primary_country"),
-            "affected_countries": disaster_data.get("affected_countries", []),
+            "affected_countries": disaster_data.get("country", []),
             "primary_type": disaster_data.get("primary_type"),
             "profile": disaster_data.get("profile"),
         }
@@ -109,12 +117,15 @@ class DisasterPulseSync:
                 "operator": "AND",
                 "conditions": [
                     {"field": "disaster.id", "value": disaster.id},
-                    {"field": "format.id", "value": 10}  # 10 for Situation Report, 12 for Map
-                ]
+                    {
+                        "field": "format.id",
+                        "value": [10, 12],
+                    },  # 10 for Situation Report, 12 for Map
+                ],
             },
             "profile": "full",
             "sort": ["date:desc"],
-            "limit": 10  # Adjust this value as needed
+            "limit": 20,  # Adjust this value as needed
         }
         reports_data = await self.make_api_request("reports", params)
         if not reports_data:
@@ -123,9 +134,13 @@ class DisasterPulseSync:
         synced_report_ids = []
         for report_item in reports_data["data"]:
             report_data = report_item["fields"]
-            report = await self.update_or_create_report(session, disaster.id, report_data)
+            report = await self.update_or_create_report(
+                session, disaster.id, report_data
+            )
             synced_report_ids.append(report.id)
-            logger.info(f"Synchronized report ID: {report.id} for disaster ID: {disaster.id}")
+            logger.info(
+                f"Synchronized report ID: {report.id} for disaster ID: {disaster.id}"
+            )
 
         # Delete old reports not in the latest sync
         await session.execute(
@@ -161,17 +176,18 @@ class DisasterPulseSync:
             "url_alias": report_data.get("url_alias"),
             "date_created": self.parse_date(report_data.get("date", {}).get("created")),
             "date_changed": self.parse_date(report_data.get("date", {}).get("changed")),
-            "date_original": self.parse_date(report_data.get("date", {}).get("original")),
+            "date_original": self.parse_date(
+                report_data.get("date", {}).get("original")
+            ),
             "status": report_data.get("status"),
             "language": report_data.get("language"),
             "source": report_data.get("source"),
             "theme": report_data.get("theme"),
             "file": report_data.get("file"),
-            "headline": report_data.get("headline"),
             "primary_country": report_data.get("primary_country"),
             "affected_countries": report_data.get("country", []),
         }
-        
+
         # Extract format id and name
         if report_data.get("format") and len(report_data["format"]) > 0:
             processed_data["content_format_id"] = report_data["format"][0].get("id")
@@ -185,12 +201,15 @@ class DisasterPulseSync:
             session.add(report)
         return report
 
-    async def cleanup_old_data(self, session: AsyncSession, active_disaster_ids: List[int]):
+    async def cleanup_old_data(
+        self, session: AsyncSession, active_disaster_ids: List[int]
+    ):
         cutoff_date = datetime.now() - self.retention_period
         await session.execute(
             delete(Disaster).where(
                 and_(
-                    Disaster.id.notin_(active_disaster_ids), Disaster.date_created < cutoff_date
+                    Disaster.id.notin_(active_disaster_ids),
+                    Disaster.date_created < cutoff_date,
                 )
             )
         )

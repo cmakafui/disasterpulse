@@ -15,8 +15,8 @@ class ReportBase(BaseModel):
     source: Optional[list] = None
     theme: Optional[list] = None
     file: Optional[list] = None
-    extracted_content: Optional[str] = None
-    headline: Optional[list] = None
+    extracted_report: Optional[str] = None
+    extracted_maps: Optional[list] = None
     content_format_id: Optional[int] = None
     content_format_name: Optional[str] = None
 
