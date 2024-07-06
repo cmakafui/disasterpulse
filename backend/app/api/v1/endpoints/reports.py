@@ -88,7 +88,7 @@ async def extract_report_pdf(
 
     extracted_text = await extract_text_from_pdf_url(pdf_url)
 
-    report.extracted_content = extracted_text
+    report.extracted_report = extracted_text
     await db.commit()
 
     return {"text": extracted_text}

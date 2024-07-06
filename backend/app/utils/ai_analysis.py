@@ -71,7 +71,7 @@ async def generate_report_analysis(
     prompt += f"Title: {report_title}\n\nContent: {report_content}"
 
     return await instructor_client.chat.completions.create(
-        model="claude-3-haiku-20240307",
+        model="claude-3-5-sonnet-20240620",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=4096,
         response_model=DisasterAnalysis,
@@ -98,7 +98,7 @@ async def generate_map_analysis(
     ]
     
     return await instructor_client.chat.completions.create(
-        model="claude-3-haiku-20240307",
+        model="claude-3-5-sonnet-20240620",
         messages=messages,
         max_tokens=4096,
         response_model=MapAnalysis,

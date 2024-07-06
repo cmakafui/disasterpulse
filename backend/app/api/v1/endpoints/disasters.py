@@ -131,8 +131,8 @@ async def analyze_report(
         )
 
     # Extract the text from the situation report
-    if latest_report.extracted_content:
-        extracted_text = latest_report.extracted_content
+    if latest_report.extracted_report:
+        extracted_text = latest_report.extracted_report
     elif (
         latest_report.file
         and isinstance(latest_report.file, list)
@@ -144,8 +144,8 @@ async def analyze_report(
                 status_code=404, detail="No valid PDF URL found for the latest report"
             )
         extracted_text = await extract_text_from_pdf_url(pdf_url)
-        # Update the report with the extracted content
-        latest_report.extracted_content = extracted_text
+        # Update the report with the extracted text
+        latest_report.extracted_report = extracted_text
         await db.commit()
     else:
         raise HTTPException(
