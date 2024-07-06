@@ -14,8 +14,6 @@ services:
       - API_BASE_URL=${API_BASE_URL}
     restart: unless-stopped
     depends_on:
-      disasterpulse-db:
-        condition: service_healthy
       disasterpulse-backend:
         condition: service_healthy
     networks:
@@ -60,6 +58,38 @@ services:
       - "traefik.http.routers.disasterpulse-backend-secure.service=disasterpulse-backend"
       - "traefik.http.routers.disasterpulse-backend-secure.middlewares=secHeaders@file, autodetectContenttype@file"
       - "traefik.http.services.disasterpulse-backend.loadbalancer.server.port=8000"
+
+  disasterpulse-frontend:
+    container_name: disasterpulse-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3303:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      disasterpulse-backend:
+        condition: service_healthy
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.disasterpulse-frontend.entrypoints=web"
+      - "traefik.http.routers.disasterpulse-frontend.rule=Host(`${DISASTERPULSE_DOMAIN}`)"
+      - "traefik.http.middlewares.disasterpulse-frontend-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.disasterpulse-frontend.middlewares=disasterpulse-frontend-https-redirect"
+      # Secure Router setup
+      - "traefik.http.routers.disasterpulse-frontend-secure.entrypoints=web-secure"
+      - "traefik.http.routers.disasterpulse-frontend-secure.rule=Host(`${DISASTERPULSE_DOMAIN}`)"
+      - "traefik.http.routers.disasterpulse-frontend-secure.tls=true"
+      - "traefik.http.routers.disasterpulse-frontend-secure.service=disasterpulse-frontend"
+      - "traefik.http.routers.disasterpulse-frontend-secure.middlewares=secHeaders@file, autodetectContenttype@file"
+      - "traefik.http.services.disasterpulse-frontend.loadbalancer.server.port=3000"
 
   disasterpulse-db:
     container_name: disasterpulse-db
