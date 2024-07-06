@@ -38,6 +38,12 @@ services:
     depends_on:
       disasterpulse-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://disasterpulse-backend:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
     networks:
       - proxy
     labels:
