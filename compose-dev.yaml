@@ -13,7 +13,10 @@ services:
       - RETENTION_PERIOD_DAYS=${RETENTION_PERIOD_DAYS}
     restart: unless-stopped
     depends_on:
-      - disasterpulse-db
+      disasterpulse-db:
+        condition: service_healthy
+      disasterpulse-backend:
+        condition: service_started
 
   disasterpulse-backend:
     container_name: disasterpulse-backend
@@ -32,7 +35,14 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     restart: unless-stopped
     depends_on:
-      - disasterpulse-datasync
+      disasterpulse-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   disasterpulse-db:
     container_name: disasterpulse-db
@@ -48,6 +58,12 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   disasterpulse_pg_data:

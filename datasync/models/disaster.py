@@ -18,7 +18,6 @@ class Disaster(Base):
     primary_country = Column(JSON)
     affected_countries = Column(JSON)
     primary_type = Column(JSON)
-    profile = Column(JSON)
     related_glide = Column(JSON)
 
     # AI Fields

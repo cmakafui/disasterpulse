@@ -84,7 +84,7 @@ async def delete_disaster(
 @router.get("/{disaster_id}/analysis", response_model=DisasterInDB)
 async def get_latest_report_analysis(
     disaster_id: int,
-    type: Literal["report", "map"] = Query(
+    analysis_type: Literal["report", "map"] = Query(
         ..., description="Type of analysis to perform"
     ),
     lang: Language = Query(Language.ENGLISH, description="Language for the analysis"),
@@ -98,12 +98,17 @@ async def get_latest_report_analysis(
     if not disaster:
         raise HTTPException(status_code=404, detail="Disaster not found")
 
-    if type == "report":
-        disaster.report_analysis = await analyze_report(
-            disaster_id, disaster.name, lang, db
-        )
-    elif type == "map":
-        disaster.map_analysis = await analyze_map(disaster_id, disaster.name, lang, db)
+    match analysis_type:
+        case "report":
+            if not disaster.report_analysis:
+                disaster.report_analysis = await analyze_report(
+                    disaster_id, disaster.name, lang, db
+                )
+        case "map":
+            if not disaster.map_analysis:
+                disaster.map_analysis = await analyze_map(
+                    disaster_id, disaster.name, lang, db
+                )
 
     # Commit the changes to the database
     await db.commit()

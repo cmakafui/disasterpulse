@@ -13,7 +13,6 @@ class DisasterBase(BaseModel):
     date_event: datetime
     primary_country: Optional[dict] = None
     primary_type: Optional[dict] = None
-    profile: Optional[dict] = None
     related_glide: Optional[list] = None
     report_analysis: Optional[dict] = None
     map_analysis: Optional[dict] = None

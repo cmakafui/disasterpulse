@@ -20,9 +20,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION, lifespan=lifespan)
 
 
-@app.get("/")
+@app.get("/health")
 async def read_root():
-    return {"Hello": "World"}
+    return {"status": "ok"}
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
