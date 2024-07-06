@@ -17,7 +17,7 @@ services:
       disasterpulse-db:
         condition: service_healthy
       disasterpulse-backend:
-        condition: service_started
+        condition: service_healthy
 
   disasterpulse-backend:
     container_name: disasterpulse-backend

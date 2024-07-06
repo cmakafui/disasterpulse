@@ -17,7 +17,7 @@ services:
       disasterpulse-db:
         condition: service_healthy
       disasterpulse-backend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - proxy
 
@@ -39,7 +39,7 @@ services:
       disasterpulse-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://disasterpulse-backend:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 2
