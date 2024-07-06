@@ -41,46 +41,6 @@ async def read_disaster(
     return DisasterInDB.model_validate(disaster)
 
 
-@router.post("/", response_model=DisasterInDB)
-async def create_disaster(
-    disaster: DisasterCreate, db: AsyncSession = Depends(deps.get_db)
-) -> Any:
-    db_disaster = Disaster(**disaster.model_dump())
-    db.add(db_disaster)
-    await db.commit()
-    await db.refresh(db_disaster)
-    return DisasterInDB.model_validate(db_disaster)
-
-
-@router.put("/{disaster_id}", response_model=DisasterInDB)
-async def update_disaster(
-    disaster_id: int, disaster: DisasterUpdate, db: AsyncSession = Depends(deps.get_db)
-) -> Any:
-    result = await db.execute(select(Disaster).filter(Disaster.id == disaster_id))
-    db_disaster = result.scalar_one_or_none()
-    if not db_disaster:
-        raise HTTPException(status_code=404, detail="Disaster not found")
-    update_data = disaster.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_disaster, field, value)
-    await db.commit()
-    await db.refresh(db_disaster)
-    return DisasterInDB.model_validate(db_disaster)
-
-
-@router.delete("/{disaster_id}", response_model=dict)
-async def delete_disaster(
-    disaster_id: int, db: AsyncSession = Depends(deps.get_db)
-) -> Any:
-    result = await db.execute(select(Disaster).filter(Disaster.id == disaster_id))
-    disaster = result.scalar_one_or_none()
-    if not disaster:
-        raise HTTPException(status_code=404, detail="Disaster not found")
-    await db.delete(disaster)
-    await db.commit()
-    return {"ok": True}
-
-
 @router.put("/{disaster_id}/analysis", response_model=DisasterInDB)
 async def get_latest_report_analysis(
     disaster_id: int,
