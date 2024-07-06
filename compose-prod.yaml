@@ -1,0 +1,79 @@
+services:
+  disasterpulse-datasync:
+    container_name: disasterpulse-datasync
+    build:
+      context: ./datasync
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - RELIEFWEB_APP_NAME=${RELIEFWEB_APP_NAME}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@disasterpulse-db:5432/${POSTGRES_DB}
+      - RELIEF_WEB_API_URL=${RELIEF_WEB_API_URL}
+      - RETENTION_PERIOD_DAYS=${RETENTION_PERIOD_DAYS}
+    restart: unless-stopped
+    depends_on:
+      - disasterpulse-db
+    networks:
+      - proxy
+
+  disasterpulse-backend:
+    container_name: disasterpulse-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - RELIEFWEB_APP_NAME=${RELIEFWEB_APP_NAME}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@disasterpulse-db:5432/${POSTGRES_DB}
+      - RELIEF_WEB_API_URL=${RELIEF_WEB_API_URL}
+      - RETENTION_PERIOD_DAYS=${RETENTION_PERIOD_DAYS}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    restart: unless-stopped
+    depends_on:
+      - disasterpulse-datasync
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.disasterpulse-backend.entrypoints=web"
+      - "traefik.http.routers.disasterpulse-backend.rule=Host(`${DISASTERPULSE_API_DOMAIN}`)"
+      - "traefik.http.middlewares.disasterpulse-backend-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.disasterpulse-backend.middlewares=disasterpulse-backend-https-redirect"
+      # Secure Router setup
+      - "traefik.http.routers.disasterpulse-backend-secure.entrypoints=web-secure"
+      - "traefik.http.routers.disasterpulse-backend-secure.rule=Host(`${DISASTERPULSE_API_DOMAIN}`)"
+      - "traefik.http.routers.disasterpulse-backend-secure.tls=true"
+      - "traefik.http.routers.disasterpulse-backend-secure.service=disasterpulse-backend"
+      - "traefik.http.routers.disasterpulse-backend-secure.middlewares=secHeaders@file, autodetectContenttype@file"
+      - "traefik.http.services.disasterpulse-backend.loadbalancer.server.port=8000"
+
+  disasterpulse-db:
+    container_name: disasterpulse-db
+    image: postgres:16-alpine
+    volumes:
+      - disasterpulse_pg_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - proxy
+
+volumes:
+  disasterpulse_pg_data:
+    name: disasterpulse_pg_data
+
+networks:
+  proxy:
+    name: proxy
+    external: true
+
+x-dockge:
+  urls:
+    - https://${DISASTERPULSE_API_DOMAIN}

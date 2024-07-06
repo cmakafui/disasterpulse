@@ -97,6 +97,7 @@ orjson==3.10.5
     # via fastapi
 packaging==24.1
     # via huggingface-hub
+pillow==10.4.0
 pydantic==2.8.0
     # via
     #   anthropic

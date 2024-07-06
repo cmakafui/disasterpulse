@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    RELIEFWEB_APP_NAME: str = "rw-user-0"
+    RELIEFWEB_APP_NAME: str
     DATABASE_URL: str
     ANTHROPIC_API_KEY: str
     RELIEF_WEB_API_URL: str = "https://api.reliefweb.int/v1"

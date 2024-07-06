@@ -1,0 +1,54 @@
+services:
+  disasterpulse-datasync:
+    container_name: disasterpulse-datasync
+    build:
+      context: ./datasync
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - RELIEFWEB_APP_NAME=${RELIEFWEB_APP_NAME}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@disasterpulse-db:5432/${POSTGRES_DB}
+      - RELIEF_WEB_API_URL=${RELIEF_WEB_API_URL}
+      - RETENTION_PERIOD_DAYS=${RETENTION_PERIOD_DAYS}
+    restart: unless-stopped
+    depends_on:
+      - disasterpulse-db
+
+  disasterpulse-backend:
+    container_name: disasterpulse-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8808:8000"
+    env_file:
+      - .env
+    environment:
+      - RELIEFWEB_APP_NAME=${RELIEFWEB_APP_NAME}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@disasterpulse-db:5432/${POSTGRES_DB}
+      - RELIEF_WEB_API_URL=${RELIEF_WEB_API_URL}
+      - RETENTION_PERIOD_DAYS=${RETENTION_PERIOD_DAYS}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    restart: unless-stopped
+    depends_on:
+      - disasterpulse-datasync
+
+  disasterpulse-db:
+    container_name: disasterpulse-db
+    image: postgres:16-alpine
+    volumes:
+      - disasterpulse_pg_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-disasterpulse}
+      - POSTGRES_USER=${POSTGRES_USER:-disasterpulse}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  disasterpulse_pg_data:
+    name: disasterpulse_pg_data
