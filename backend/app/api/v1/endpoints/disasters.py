@@ -81,7 +81,7 @@ async def delete_disaster(
     return {"ok": True}
 
 
-@router.get("/{disaster_id}/analysis", response_model=DisasterInDB)
+@router.put("/{disaster_id}/analysis", response_model=DisasterInDB)
 async def get_latest_report_analysis(
     disaster_id: int,
     analysis_type: Literal["report", "map"] = Query(

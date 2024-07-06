@@ -70,7 +70,7 @@ class DisasterPulseSync:
         analysis_url = f"/disasters/{disaster_id}/analysis?analysis_type={analysis_type}"
         try:
             with httpx.Client(base_url=settings.API_BASE_URL, timeout=httpx.Timeout(timeout=120.0)) as client:
-                response = client.get(analysis_url)
+                response = client.put(analysis_url)
                 response.raise_for_status()
             logger.info(f"Updated {analysis_type} analysis for disaster ID: {disaster_id}")
         except httpx.HTTPStatusError as e:
