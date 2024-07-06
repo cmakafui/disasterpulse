@@ -11,6 +11,7 @@ services:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@disasterpulse-db:5432/${POSTGRES_DB}
       - RELIEF_WEB_API_URL=${RELIEF_WEB_API_URL}
       - RETENTION_PERIOD_DAYS=${RETENTION_PERIOD_DAYS}
+      - API_BASE_URL=${API_BASE_URL}
     restart: unless-stopped
     depends_on:
       disasterpulse-db:
@@ -37,12 +38,6 @@ services:
     depends_on:
       disasterpulse-db:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     networks:
       - proxy
     labels:
