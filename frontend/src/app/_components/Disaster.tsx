@@ -1,3 +1,4 @@
+// Disaster.tsx
 import React from "react";
 import { DisasterList } from "@/lib/types";
 import {
@@ -18,32 +19,30 @@ import Link from "next/link";
 
 interface Props {
   disasters: DisasterList[];
+  onHoverDisaster: (id: number | null) => void;
 }
 
-function Disaster({
-  disasters,
-  onHoverDisaster,
-}: {
-  disasters: DisasterList[];
-  onHoverDisaster: (id: number | null) => void;
-}) {
+function Disaster({ disasters, onHoverDisaster }: Props) {
   return (
-    <div className="space-y-4 max-w-2xl mx-auto">
+    <div className="space-y-6">
       {disasters.map((disaster) => (
-        <Link href={`/disaster/${disaster.id}`} key={disaster.id}>
+        <Link
+          href={`/disaster/${disaster.id}`}
+          key={disaster.id}
+          className="block"
+        >
           <Card
-            key={disaster.id}
-            className="w-full hover:border hover:border-primary cursor-pointer rounded-lg"
+            className="w-full hover:shadow-md transition-all duration-300 cursor-pointer rounded-lg border-2 border-gray-100 hover:border-primary"
             onMouseEnter={() => onHoverDisaster(disaster.id)}
             onMouseLeave={() => onHoverDisaster(null)}
           >
-            <CardHeader>
+            <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-xl font-bold">
+                  <CardTitle className="text-xl font-bold mb-1">
                     {disaster.name}
                   </CardTitle>
-                  <CardDescription className="mt-1">
+                  <CardDescription>
                     {disaster.primary_type?.name}
                   </CardDescription>
                 </div>
@@ -51,25 +50,26 @@ function Disaster({
                   variant={
                     disaster.status === "alert" ? "destructive" : "default"
                   }
+                  className="ml-2"
                 >
                   {disaster.status}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-gray-500">
-                  <CalendarIcon className="w-4 h-4 mr-2" />
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center text-sm text-gray-600">
+                  <CalendarIcon className="w-4 h-4 mr-2 text-gray-400" />
                   {new Date(disaster.date_event).toLocaleDateString()}
                 </div>
                 {disaster.primary_country && (
-                  <div className="flex items-center text-sm text-gray-500">
-                    <MapPinIcon className="w-4 h-4 mr-2" />
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPinIcon className="w-4 h-4 mr-2 text-gray-400" />
                     {disaster.primary_country.name}
                   </div>
                 )}
-                <div className="flex items-center text-sm text-gray-500">
-                  <AlertTriangleIcon className="w-4 h-4 mr-2" />
+                <div className="flex items-center text-sm text-gray-600">
+                  <AlertTriangleIcon className="w-4 h-4 mr-2 text-gray-400" />
                   Last updated:{" "}
                   {new Date(disaster.date_changed).toLocaleString()}
                 </div>
@@ -83,9 +83,11 @@ function Disaster({
                 )}
               </div>
               {disaster.report_analysis?.analysis?.executive_summary && (
-                <div>
-                  <h4 className="font-semibold mb-2">Executive Summary:</h4>
-                  <p className="text-sm text-gray-600">
+                <div className="mt-4">
+                  <h4 className="font-semibold mb-2 text-gray-700">
+                    Executive Summary:
+                  </h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">
                     {disaster.report_analysis.analysis.executive_summary
                       .length > 200
                       ? `${disaster.report_analysis.analysis.executive_summary.substring(
