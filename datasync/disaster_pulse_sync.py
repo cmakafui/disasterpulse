@@ -4,7 +4,7 @@ from sqlalchemy import delete, and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any
 from db.session import AsyncSessionLocal
 from models.disaster import Disaster
 from models.report import Report
@@ -86,7 +86,7 @@ class DisasterPulseSync:
             "filter": {"field": "status", "value": ["alert", "ongoing"]},
             "profile": "full",
             "sort": ["date:desc"],
-            "limit": 1,
+            "limit": settings.DISASTER_LIMIT,
         }
         disasters_data = await self.make_api_request("disasters", params)
         if not disasters_data:

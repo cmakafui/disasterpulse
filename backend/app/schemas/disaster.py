@@ -3,9 +3,10 @@ from typing import Optional
 from datetime import datetime
 
 
+
 class DisasterBase(BaseModel):
+    id: int
     name: str
-    description: Optional[str] = None
     status: str
     glide: Optional[str] = None
     url: Optional[str] = None
@@ -13,33 +14,30 @@ class DisasterBase(BaseModel):
     date_event: datetime
     primary_country: Optional[dict] = None
     primary_type: Optional[dict] = None
-    related_glide: Optional[list] = None
-    report_analysis: Optional[dict] = None
-    map_analysis: Optional[dict] = None
-
-    class Config:
-        from_attributes = True
-
-
-class DisasterCreate(DisasterBase):
-    pass
-
-
-class DisasterUpdate(DisasterBase):
-    pass
-
-
-class DisasterInDBBase(DisasterBase):
-    id: int
-    date_created: datetime
-    date_changed: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class DisasterInDB(DisasterInDBBase):
-    pass
+class DisasterList(BaseModel):
+    id: int
+    name: str
+    status: str
+    date_event: datetime
+    date_changed: datetime
+    primary_country: Optional[dict] = None
+    primary_type: Optional[dict] = None
+    report_analysis: Optional[dict] = None
+    model_config = ConfigDict(from_attributes=True)
 
 
-class Disaster(DisasterInDBBase):
+class DisasterDetail(DisasterBase):
+    description: Optional[str] = None
+    date_created: datetime
+    date_changed: datetime
+    related_glide: Optional[list] = None
+    report_analysis: Optional[dict] = None
+    map_analysis: Optional[dict] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class Disaster(DisasterDetail):
     pass

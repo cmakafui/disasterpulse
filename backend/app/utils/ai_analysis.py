@@ -43,12 +43,14 @@ class DisasterAnalysis(BaseModel):
     impact_analysis: ImpactAnalysis
     needs_analysis: NeedsAnalysis
 
+
 class MapAnalysis(BaseModel):
-    executive_summary: str = Field(
-        ..., description="Executive summary of the Map"
-    )
+    executive_summary: str = Field(..., description="Executive summary of the Map")
     affected_areas: List[str] = Field(..., description="List of affected areas")
-    main_insights: List[str] = Field(..., description="List of main insights from the map analysis")
+    main_insights: List[str] = Field(
+        ..., description="List of main insights from the map analysis"
+    )
+
 
 instructor_client = instructor.from_anthropic(
     AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -59,6 +61,7 @@ language_prompts = {
     Language.SPANISH: "Proporcione el análisis en español",
     Language.FRENCH: "Fournissez l'analyse en français",
 }
+
 
 async def generate_report_analysis(
     disaster: str, report_title: str, report_content: str, lang: str
@@ -77,26 +80,29 @@ async def generate_report_analysis(
         response_model=DisasterAnalysis,
     )
 
+
 async def generate_map_analysis(
     disaster: str, map_title: str, encoded_images: List[str], lang: str
 ) -> DisasterAnalysis:
     lang_prompt = language_prompts.get(lang, language_prompts[Language.ENGLISH])
-    
+
     content = [
-        {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": encoded_png}}
+        {
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/png",
+                "data": encoded_png,
+            },
+        }
         for encoded_png in encoded_images
     ]
-    
+
     prompt = f"Analyze the following map images from '{map_title}' related to the disaster '{disaster}'. {lang_prompt}."
     content.append({"type": "text", "text": prompt})
-    
-    messages = [
-        {
-            "role": "user",
-            "content": content
-        }
-    ]
-    
+
+    messages = [{"role": "user", "content": content}]
+
     return await instructor_client.chat.completions.create(
         model="claude-3-5-sonnet-20240620",
         messages=messages,

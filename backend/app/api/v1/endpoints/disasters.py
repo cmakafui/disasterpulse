@@ -1,4 +1,4 @@
-from typing import Any, List, Literal
+from typing import Any, List, Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from app.core.config import settings
 from app.models.disaster import Disaster
 from app.models.report import Report
-from app.schemas.disaster import DisasterCreate, DisasterUpdate, DisasterInDB
+from app.schemas.disaster import DisasterList, DisasterDetail
 from app.api import deps
 from app.utils.pdf_extractor import extract_text_from_pdf_url, pdf_to_base64_pngs
 from app.utils.ai_analysis import generate_map_analysis, generate_report_analysis
@@ -21,16 +21,35 @@ class Language(str, Enum):
     FRENCH = "fr"
 
 
-@router.get("/", response_model=List[DisasterInDB])
+@router.get("/", response_model=List[DisasterList])
 async def read_disasters(
-    db: AsyncSession = Depends(deps.get_db), skip: int = 0, limit: int = 100
+    db: AsyncSession = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    status: Optional[Literal["alert", "ongoing"]] = None,
 ) -> Any:
-    result = await db.execute(select(Disaster).offset(skip).limit(limit))
+    query = select(Disaster).offset(skip).limit(limit)
+    if status:
+        query = query.filter(Disaster.status == status)
+    result = await db.execute(query)
     disasters = result.scalars().all()
-    return [DisasterInDB.model_validate(disaster) for disaster in disasters]
+    return [DisasterList.model_validate(disaster) for disaster in disasters]
 
 
-@router.get("/{disaster_id}", response_model=DisasterInDB)
+@router.get("/filter", response_model=List[DisasterList])
+async def filter_disasters(
+    db: AsyncSession = Depends(deps.get_db),
+    status: Literal["alert", "ongoing"] = Query(..., description="Status to filter by"),
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    query = select(Disaster).filter(Disaster.status == status).offset(skip).limit(limit)
+    result = await db.execute(query)
+    disasters = result.scalars().all()
+    return [DisasterList.model_validate(disaster) for disaster in disasters]
+
+
+@router.get("/{disaster_id}", response_model=DisasterDetail)
 async def read_disaster(
     disaster_id: int, db: AsyncSession = Depends(deps.get_db)
 ) -> Any:
@@ -38,10 +57,10 @@ async def read_disaster(
     disaster = result.scalar_one_or_none()
     if not disaster:
         raise HTTPException(status_code=404, detail="Disaster not found")
-    return DisasterInDB.model_validate(disaster)
+    return DisasterDetail.model_validate(disaster)
 
 
-@router.put("/{disaster_id}/analysis", response_model=DisasterInDB)
+@router.put("/{disaster_id}/analysis", response_model=DisasterDetail)
 async def get_latest_report_analysis(
     disaster_id: int,
     analysis_type: Literal["report", "map"] = Query(
@@ -73,7 +92,7 @@ async def get_latest_report_analysis(
     # Commit the changes to the database
     await db.commit()
     await db.refresh(disaster)
-    return DisasterInDB.model_validate(disaster)
+    return DisasterDetail.model_validate(disaster)
 
 
 async def analyze_report(
@@ -133,7 +152,9 @@ async def analyze_report(
     }
 
 
-async def analyze_map(disaster_id: int, disaster_name : str, lang: str, db: AsyncSession) -> dict:
+async def analyze_map(
+    disaster_id: int, disaster_name: str, lang: str, db: AsyncSession
+) -> dict:
     # Get the latest map for the disaster
     map_result = await db.execute(
         select(Report)
@@ -146,9 +167,7 @@ async def analyze_map(disaster_id: int, disaster_name : str, lang: str, db: Asyn
     )
     latest_map = map_result.scalar_one_or_none()
     if not latest_map:
-        raise HTTPException(
-            status_code=404, detail="No Map found for this disaster"
-        )
+        raise HTTPException(status_code=404, detail="No Map found for this disaster")
     # Extract the images from the Map PDF
     if latest_map.extracted_maps:
         extracted_images = latest_map.extracted_maps
@@ -172,7 +191,6 @@ async def analyze_map(disaster_id: int, disaster_name : str, lang: str, db: Asyn
             detail="No images available for analysis in the latest map",
         )
 
-
     # Perform AI analysis on the map images
     map_analysis = await generate_map_analysis(
         disaster_name, latest_map.title, latest_map.extracted_maps, lang
@@ -182,6 +200,7 @@ async def analyze_map(disaster_id: int, disaster_name : str, lang: str, db: Asyn
     return {
         "disaster_id": disaster_id,
         "latest_map_date": latest_map.date_created.isoformat(),
+        "latest_map_title": latest_map.title,
         "type": "map",
         "analysis": map_analysis.model_dump(),
     }

@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     CONTENT_FORMAT_SITUATION_REPORT: int = 10
     CONTENT_FORMAT_MAP: int = 12
     API_BASE_URL: str
+    DISASTER_LIMIT: int = 3
     SYNC_INTERVAL_HOURS: int
     ANTHROPIC_API_KEY: str
     RELIEF_WEB_API_URL: str = "https://api.reliefweb.int/v1"

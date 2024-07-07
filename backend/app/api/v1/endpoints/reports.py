@@ -4,30 +4,41 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.core.config import settings
 from app.models.report import Report
-from app.schemas.report import ReportInDB
+from app.schemas.report import ReportList, ReportDetail
 from app.api import deps
 from app.utils.pdf_extractor import extract_text_from_pdf_url, pdf_to_base64_pngs
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[ReportInDB])
+@router.get("/", response_model=List[ReportList])
 async def read_reports(
     db: AsyncSession = Depends(deps.get_db), skip: int = 0, limit: int = 100
 ) -> Any:
     result = await db.execute(select(Report).offset(skip).limit(limit))
     reports = result.scalars().all()
-    return [ReportInDB.model_validate(report) for report in reports]
+    return [ReportList.model_validate(report) for report in reports]
 
 
-@router.get("/{report_id}", response_model=ReportInDB)
+@router.get("/{report_id}", response_model=ReportDetail)
 async def read_report(report_id: int, db: AsyncSession = Depends(deps.get_db)) -> Any:
     result = await db.execute(select(Report).filter(Report.id == report_id))
     report = result.scalar_one_or_none()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
-    return ReportInDB.model_validate(report)
+    return ReportDetail.model_validate(report)
 
+@router.get("/disaster/{disaster_id}", response_model=List[ReportList])
+async def read_reports_by_disaster(
+    disaster_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100
+) -> Any:
+    query = select(Report).filter(Report.disaster_id == disaster_id).offset(skip).limit(limit)
+    result = await db.execute(query)
+    reports = result.scalars().all()
+    return [ReportList.model_validate(report) for report in reports]
 
 @router.get("/{report_id}/text", response_model=dict)
 async def extract_report_pdf(
