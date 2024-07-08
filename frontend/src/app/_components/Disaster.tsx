@@ -16,6 +16,8 @@ import {
   AlertTriangle,
   Users,
   ArrowRight,
+  Database,
+  Brain,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -102,13 +104,18 @@ function Disaster({ disasters, onHoverDisaster }: Props) {
               </div>
             )}
           </CardContent>
-          <CardFooter className="bg-gray-50 flex justify-between items-center p-4">
-            <div className="text-sm text-gray-500">
-              Data provided by DisasterPulse AI
+          <CardFooter className="bg-gray-50 flex flex-col sm:flex-row justify-between items-center p-4 space-y-2 sm:space-y-0">
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Database className="w-4 h-4 text-primary" />
+              <span>Data sourced from ReliefWeb</span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Brain className="w-4 h-4 text-primary" />
+              <span>Analyzed by PulseInsight AI</span>
             </div>
             <Link href={`/disaster/${disaster.id}`}>
               <Button variant="outline" size="sm" className="ml-4">
-                View Details
+                View Insights
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

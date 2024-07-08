@@ -36,16 +36,16 @@ const Header = () => {
         </nav>
       </div>
       <div className="flex gap-2">
-        <Button>
-          <MessageCirclePlus className="mr-2 h-4 w-4" />
-          Q/A Chat
-        </Button>
         <SignedOut>
           <Link href="/sign-in">
-            <Button variant="outline">Login</Button>
+            <Button variant="outline">Login for PulseInsight AI</Button>
           </Link>
         </SignedOut>
         <SignedIn>
+          <Button>
+            <MessageCirclePlus className="mr-2 h-4 w-4" />
+            PulseInsight AI
+          </Button>
           <UserButton />
         </SignedIn>
       </div>
