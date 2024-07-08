@@ -9,6 +9,7 @@ import NeedsAnalysis from "../_components/NeedsAnalysis";
 import MapAnalysis from "../_components/MapAnalysis";
 import DisasterMap from "../_components/DisasterMap";
 import SourceInfo from "../_components/SourceInfo";
+import NewsComponent from "../_components/NewsComponent";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ArrowLeft, Bot } from "lucide-react";
@@ -52,6 +53,7 @@ export default async function ViewDisaster({
           <MapAnalysis disaster={disaster} />
         </div>
         <div className="lg:col-span-1 space-y-8">
+          <NewsComponent disaster={disaster} />
           <DisasterMap disaster={disaster} />
           <SourceInfo disaster={disaster} sourceName="ReliefWeb" />
         </div>

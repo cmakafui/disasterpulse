@@ -22,6 +22,7 @@ export interface DisasterDetail extends DisasterList {
     latest_report_id: number;
     latest_report_title: string;
     latest_report_date: string;
+    latest_report_url: string;
     type: string;
     analysis: {
       executive_summary?: string;
@@ -45,12 +46,23 @@ export interface DisasterDetail extends DisasterList {
   };
   map_analysis?: {
     disaster_id: number;
+    latest_map_title: string;
     latest_map_date: string;
+    latest_map_url: string;
+    latest_map_image_url: string;
     type: string;
     analysis: {
-      executive_summary: string;
+      disaster_extent: string;
       affected_areas: string[];
-      main_insights: string[];
+      key_findings: string[];
     };
+  };
+  news_analysis?: {
+    disaster_id: number;
+    type: string;
+    latest_news_title: string;
+    latest_news_date: string;
+    latest_news_content: string;
+    latest_news_url: string;
   };
 }
