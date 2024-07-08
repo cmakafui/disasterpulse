@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { MessageCirclePlus } from "lucide-react";
@@ -15,7 +14,9 @@ const Header = () => {
     <header className="p-6 px-10 flex justify-between items-center shadow-sm fixed top-0 w-full z-10 bg-white">
       <div className="flex gap-12 items-center">
         <Link href="/">
-          <Image src="/logo.svg" alt="logo" width={100} height={100} />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 text-transparent bg-clip-text">
+            Disasterpulse
+          </h1>
         </Link>
         <nav className="hidden md:flex gap-10">
           <ul className="flex gap-10">
