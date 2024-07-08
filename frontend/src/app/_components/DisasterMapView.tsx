@@ -49,7 +49,7 @@ function DisasterMapView() {
       return Array.from({ length: 3 }).map((_, index) => (
         <div
           key={index}
-          className="space-y-3 bg-slate-200 animate-pulse rounded-lg p-4 mb-6"
+          className="space-y-3 bg-slate-200 animate-pulse rounded-lg p-4 mb-4"
         >
           <Skeleton className="h-8 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
@@ -86,12 +86,12 @@ function DisasterMapView() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="space-y-6 max-w-2xl mx-auto p-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
         <FilterSection filter={filter} onFilterChange={handleFilterChange} />
-        {renderContent()}
+        <div>{renderContent()}</div>
       </div>
-      <div className="fixed right-10 h-full md:w-[550px] lg:w-[550px] xl:w-[530px]">
+      <div className="lg:sticky lg:top-24 h-[calc(100vh-6rem)]">
         <GoogleMapSection
           disasters={disasters}
           hoveredDisasterId={hoveredDisasterId}

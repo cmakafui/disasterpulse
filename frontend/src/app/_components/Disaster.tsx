@@ -32,7 +32,7 @@ function Disaster({ disasters, onHoverDisaster }: Props) {
       {disasters.map((disaster) => (
         <Link href={`/disaster/${disaster.id}`} key={disaster.id}>
           <Card
-            className="w-full hover:shadow-lg transition-all duration-300 cursor-pointer rounded-lg border-2 border-gray-100 hover:border-primary overflow-hidden"
+            className="w-full hover:shadow-lg transition-all duration-300 cursor-pointer rounded-lg border-2 border-gray-100 hover:border-primary overflow-hidden mb-6" // Added margin-bottom
             onMouseEnter={() => onHoverDisaster(disaster.id)}
             onMouseLeave={() => onHoverDisaster(null)}
           >
