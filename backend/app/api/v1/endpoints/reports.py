@@ -1,5 +1,6 @@
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.core.config import settings
@@ -15,7 +16,7 @@ router = APIRouter()
 async def read_reports(
     db: AsyncSession = Depends(deps.get_db), skip: int = 0, limit: int = 100
 ) -> Any:
-    result = await db.execute(select(Report).offset(skip).limit(limit))
+    result = await db.execute(select(Report).order_by(desc(Report.date_changed)).offset(skip).limit(limit))
     reports = result.scalars().all()
     return [ReportList.model_validate(report) for report in reports]
 
@@ -35,7 +36,7 @@ async def read_reports_by_disaster(
     skip: int = 0,
     limit: int = 100
 ) -> Any:
-    query = select(Report).filter(Report.disaster_id == disaster_id).offset(skip).limit(limit)
+    query = select(Report).filter(Report.disaster_id == disaster_id).order_by(desc(Report.date_changed)).offset(skip).limit(limit)
     result = await db.execute(query)
     reports = result.scalars().all()
     return [ReportList.model_validate(report) for report in reports]

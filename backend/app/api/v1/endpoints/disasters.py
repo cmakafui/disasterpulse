@@ -28,12 +28,13 @@ async def read_disasters(
     limit: int = 100,
     status: Optional[Literal["alert", "ongoing"]] = None,
 ) -> Any:
-    query = select(Disaster).offset(skip).limit(limit)
+    query = select(Disaster).order_by(desc(Disaster.date_changed)).offset(skip).limit(limit)
     if status:
         query = query.filter(Disaster.status == status)
     result = await db.execute(query)
     disasters = result.scalars().all()
     return [DisasterList.model_validate(disaster) for disaster in disasters]
+
 
 
 @router.get("/filter", response_model=List[DisasterList])
@@ -43,10 +44,11 @@ async def filter_disasters(
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
-    query = select(Disaster).filter(Disaster.status == status).offset(skip).limit(limit)
+    query = select(Disaster).filter(Disaster.status == status).order_by(desc(Disaster.date_changed)).offset(skip).limit(limit)
     result = await db.execute(query)
     disasters = result.scalars().all()
     return [DisasterList.model_validate(disaster) for disaster in disasters]
+
 
 
 @router.get("/{disaster_id}", response_model=DisasterDetail)
