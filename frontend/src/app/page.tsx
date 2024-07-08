@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import DisasterMapView from "./_components/DisasterMapView";
 
 export default function Home() {
