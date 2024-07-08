@@ -23,5 +23,6 @@ class Disaster(Base):
     # AI Fields
     report_analysis = Column(JSON)
     map_analysis = Column(JSON)
+    news_analysis = Column(JSON)
 
     reports = relationship("Report", back_populates="disaster")

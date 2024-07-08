@@ -28,13 +28,14 @@ async def read_disasters(
     limit: int = 100,
     status: Optional[Literal["alert", "ongoing"]] = None,
 ) -> Any:
-    query = select(Disaster).order_by(desc(Disaster.date_changed)).offset(skip).limit(limit)
+    query = (
+        select(Disaster).order_by(desc(Disaster.date_changed)).offset(skip).limit(limit)
+    )
     if status:
         query = query.filter(Disaster.status == status)
     result = await db.execute(query)
     disasters = result.scalars().all()
     return [DisasterList.model_validate(disaster) for disaster in disasters]
-
 
 
 @router.get("/filter", response_model=List[DisasterList])
@@ -44,11 +45,16 @@ async def filter_disasters(
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
-    query = select(Disaster).filter(Disaster.status == status).order_by(desc(Disaster.date_changed)).offset(skip).limit(limit)
+    query = (
+        select(Disaster)
+        .filter(Disaster.status == status)
+        .order_by(desc(Disaster.date_changed))
+        .offset(skip)
+        .limit(limit)
+    )
     result = await db.execute(query)
     disasters = result.scalars().all()
     return [DisasterList.model_validate(disaster) for disaster in disasters]
-
 
 
 @router.get("/{disaster_id}", response_model=DisasterDetail)
@@ -65,7 +71,7 @@ async def read_disaster(
 @router.put("/{disaster_id}/analysis", response_model=DisasterDetail)
 async def get_latest_report_analysis(
     disaster_id: int,
-    analysis_type: Literal["report", "map"] = Query(
+    analysis_type: Literal["report", "map", "news"] = Query(
         ..., description="Type of analysis to perform"
     ),
     lang: Language = Query(Language.ENGLISH, description="Language for the analysis"),
@@ -88,6 +94,11 @@ async def get_latest_report_analysis(
         case "map":
             if not disaster.map_analysis:
                 disaster.map_analysis = await analyze_map(
+                    disaster_id, disaster.name, lang, db
+                )
+        case "news":
+            if not disaster.news_analysis:
+                disaster.news_analysis = await analyze_news(
                     disaster_id, disaster.name, lang, db
                 )
 
@@ -149,6 +160,7 @@ async def analyze_report(
         "latest_report_id": latest_report.id,
         "latest_report_title": latest_report.title,
         "latest_report_date": latest_report.date_created.isoformat(),
+        "latest_report_url": latest_report.url,
         "type": "report",
         "analysis": report_analysis.model_dump(),
     }
@@ -201,8 +213,39 @@ async def analyze_map(
     # Return the map analysis data
     return {
         "disaster_id": disaster_id,
-        "latest_map_date": latest_map.date_created.isoformat(),
         "latest_map_title": latest_map.title,
+        "latest_map_date": latest_map.date_created.isoformat(),
+        "latest_map_url": latest_map.url,
+        "latest_map_image_url": latest_map.file[0].get("preview").get("url"),
         "type": "map",
         "analysis": map_analysis.model_dump(),
+    }
+
+
+async def analyze_news(
+    disaster_id: int, disaster_name: str, lang: str, db: AsyncSession
+) -> dict:
+    # Perform extraction of latest news articles related to the disaster
+    news_result = await db.execute(
+        select(Report)
+        .filter(
+            Report.disaster_id == disaster_id,
+            Report.content_format_id == settings.CONTENT_FORMAT_NEWS,
+        )
+        .order_by(desc(Report.date_created))
+        .limit(1)
+    )
+    latest_news = news_result.scalar_one_or_none()
+    if not latest_news:
+        raise HTTPException(status_code=404, detail="No News found for this disaster")
+
+    # Return the news analysis data
+
+    return {
+        "disaster_id": disaster_id,
+        "type": "news",
+        "latest_news_title": latest_news.title,
+        "latest_news_date": latest_news.date_created.isoformat(),
+        "latest_news_content": latest_news.body,
+        "latest_news_url": latest_news.url,
     }

@@ -23,7 +23,7 @@ class Timeline(BaseModel):
 
 class ImpactAnalysis(BaseModel):
     affected_people: Optional[int] = Field(
-        None, description="Number of displaced people"
+        None, description="Number of people affected by the disaster"
     )
     economic_impact: str
     infrastructure_damage: str
@@ -45,10 +45,12 @@ class DisasterAnalysis(BaseModel):
 
 
 class MapAnalysis(BaseModel):
-    executive_summary: str = Field(..., description="Executive summary of the Map")
+    disaster_extent: Optional[str] = Field(
+        None, description="Description of the disaster's geographical extent"
+    )
     affected_areas: List[str] = Field(..., description="List of affected areas")
-    main_insights: List[str] = Field(
-        ..., description="List of main insights from the map analysis"
+    key_findings: List[str] = Field(
+        ..., description="List of key findings from the map analysis"
     )
 
 

@@ -16,7 +16,9 @@ router = APIRouter()
 async def read_reports(
     db: AsyncSession = Depends(deps.get_db), skip: int = 0, limit: int = 100
 ) -> Any:
-    result = await db.execute(select(Report).order_by(desc(Report.date_changed)).offset(skip).limit(limit))
+    result = await db.execute(
+        select(Report).order_by(desc(Report.date_changed)).offset(skip).limit(limit)
+    )
     reports = result.scalars().all()
     return [ReportList.model_validate(report) for report in reports]
 
@@ -29,17 +31,25 @@ async def read_report(report_id: int, db: AsyncSession = Depends(deps.get_db)) -
         raise HTTPException(status_code=404, detail="Report not found")
     return ReportDetail.model_validate(report)
 
+
 @router.get("/disaster/{disaster_id}", response_model=List[ReportList])
 async def read_reports_by_disaster(
     disaster_id: int,
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
 ) -> Any:
-    query = select(Report).filter(Report.disaster_id == disaster_id).order_by(desc(Report.date_changed)).offset(skip).limit(limit)
+    query = (
+        select(Report)
+        .filter(Report.disaster_id == disaster_id)
+        .order_by(desc(Report.date_changed))
+        .offset(skip)
+        .limit(limit)
+    )
     result = await db.execute(query)
     reports = result.scalars().all()
     return [ReportList.model_validate(report) for report in reports]
+
 
 @router.get("/{report_id}/text", response_model=dict)
 async def extract_report_pdf(

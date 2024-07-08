@@ -59,6 +59,8 @@ class DisasterPulseSync:
         self.update_analysis(disaster_id, "report")
         # Update map analysis
         self.update_analysis(disaster_id, "map")
+        # Update news analysis
+        self.update_analysis(disaster_id, "news")
 
     def update_analysis(self, disaster_id, analysis_type: str):
         """
@@ -187,13 +189,14 @@ class DisasterPulseSync:
                         "value": [
                             settings.CONTENT_FORMAT_SITUATION_REPORT,
                             settings.CONTENT_FORMAT_MAP,
+                            settings.CONTENT_FORMAT_NEWS,
                         ],
                     },
                 ],
             },
             "profile": "full",
             "sort": ["date:desc"],
-            "limit": 20,  # Adjust this value as needed
+            "limit": 30,  # Adjust this value as needed
         }
         reports_data = await self.make_api_request("reports", params)
         if not reports_data:

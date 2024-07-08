@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     RELIEFWEB_APP_NAME: str = "rw-user-0"
     CONTENT_FORMAT_SITUATION_REPORT: int = 10
     CONTENT_FORMAT_MAP: int = 12
+    CONTENT_FORMAT_NEWS: int = 8
     DATABASE_URL: str
     ANTHROPIC_API_KEY: str
     RELIEF_WEB_API_URL: str = "https://api.reliefweb.int/v1"

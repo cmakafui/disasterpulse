@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import datetime
 
 
-
 class DisasterBase(BaseModel):
     id: int
     name: str
@@ -37,7 +36,9 @@ class DisasterDetail(DisasterBase):
     related_glide: Optional[list] = None
     report_analysis: Optional[dict] = None
     map_analysis: Optional[dict] = None
+    news_analysis: Optional[dict] = None
     model_config = ConfigDict(from_attributes=True)
+
 
 class Disaster(DisasterDetail):
     pass

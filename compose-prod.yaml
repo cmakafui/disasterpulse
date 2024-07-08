@@ -12,6 +12,7 @@ services:
       - RELIEF_WEB_API_URL=${RELIEF_WEB_API_URL}
       - RETENTION_PERIOD_DAYS=${RETENTION_PERIOD_DAYS}
       - API_BASE_URL=${API_BASE_URL}
+      - SYNC_INTERVAL_HOURS=${SYNC_INTERVAL_HOURS}
     restart: unless-stopped
     depends_on:
       disasterpulse-backend:

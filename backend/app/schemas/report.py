@@ -17,6 +17,7 @@ class ReportBase(BaseModel):
 class ReportList(ReportBase):
     id: int
 
+
 class ReportDetail(ReportBase):
     id: int
     body: Optional[str] = None
@@ -30,6 +31,7 @@ class ReportDetail(ReportBase):
     file: Optional[list] = None
     extracted_report: Optional[str] = None
     extracted_maps: Optional[list] = None
+
 
 class Report(ReportDetail):
     pass
