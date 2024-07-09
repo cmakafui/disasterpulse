@@ -3,12 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { DisasterList, DisasterDetail } from "./types";
 
+const ITEMS_PER_PAGE = 10; // Adjust this value as needed
+
 export async function getAllDisasters(
-  skip: number = 0,
-  limit: number = 100
+  page: number = 1
 ): Promise<DisasterList[]> {
+  const skip = (page - 1) * ITEMS_PER_PAGE;
   const response = await fetch(
-    `${process.env.API_BASE_URL}/disasters/?skip=${skip}&limit=${limit}`,
+    `${process.env.API_BASE_URL}/disasters/?skip=${skip}&limit=${ITEMS_PER_PAGE}`,
     {
       method: "GET",
       cache: "no-cache",
@@ -29,11 +31,11 @@ export async function getAllDisasters(
 
 export async function filterDisasters(
   status: "alert" | "ongoing",
-  skip: number = 0,
-  limit: number = 100
+  page: number = 1
 ): Promise<DisasterList[]> {
+  const skip = (page - 1) * ITEMS_PER_PAGE;
   const response = await fetch(
-    `${process.env.API_BASE_URL}/disasters/filter?status=${status}&skip=${skip}&limit=${limit}`,
+    `${process.env.API_BASE_URL}/disasters/filter?status=${status}&skip=${skip}&limit=${ITEMS_PER_PAGE}`,
     {
       method: "GET",
       cache: "no-cache",

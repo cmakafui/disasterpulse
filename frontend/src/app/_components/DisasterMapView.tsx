@@ -1,55 +1,90 @@
 // DisasterMapView.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Disaster from "./Disaster";
 import FilterSection from "./FilterSection";
 import { getAllDisasters, filterDisasters } from "@/lib/actions";
 import { DisasterList } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import GoogleMapSection from "./GoogleMapSection";
+import { useInView } from "react-intersection-observer";
 
 function DisasterMapView() {
   const [disasters, setDisasters] = useState<DisasterList[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "alert" | "ongoing">("all");
   const [hoveredDisasterId, setHoveredDisasterId] = useState<number | null>(
     null
   );
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    async function loadDisasters() {
-      setIsLoading(true);
+  const { ref, inView } = useInView({
+    threshold: 0,
+  });
+
+  const loadDisasters = useCallback(
+    async (isInitial: boolean = false) => {
+      if (!hasMore) return;
+      if (isInitial) {
+        setIsInitialLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
       try {
         let data: DisasterList[];
         if (filter === "all") {
-          data = await getAllDisasters();
+          data = await getAllDisasters(page);
         } else {
-          data = await filterDisasters(filter);
+          data = await filterDisasters(filter, page);
         }
-        setDisasters(data);
+        if (data.length === 0) {
+          setHasMore(false);
+        } else {
+          setDisasters((prev) => (isInitial ? data : [...prev, ...data]));
+          setPage((prev) => prev + 1);
+        }
       } catch (err) {
         setError("Failed to load disasters");
       } finally {
-        setIsLoading(false);
+        if (isInitial) {
+          setIsInitialLoading(false);
+        } else {
+          setIsLoadingMore(false);
+        }
       }
-    }
+    },
+    [filter, page, hasMore]
+  );
 
-    loadDisasters();
+  useEffect(() => {
+    loadDisasters(true);
   }, [filter]);
+
+  useEffect(() => {
+    if (inView && !isInitialLoading && !isLoadingMore) {
+      loadDisasters();
+    }
+  }, [inView, loadDisasters, isInitialLoading, isLoadingMore]);
 
   const handleFilterChange = (value: string) => {
     setFilter(value as "all" | "alert" | "ongoing");
+    setDisasters([]);
+    setPage(1);
+    setHasMore(true);
+    setError(null);
   };
 
-  const renderContent = () => {
-    if (isLoading) {
-      return Array.from({ length: 3 }).map((_, index) => (
+  const renderSkeletons = () => (
+    <>
+      {[...Array(3)].map((_, index) => (
         <div
           key={index}
-          className="space-y-3 bg-slate-200 animate-pulse rounded-lg p-4 mb-4"
+          className="space-y-3 bg-white rounded-lg p-4 mb-4 border border-gray-200"
         >
           <Skeleton className="h-8 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
@@ -57,9 +92,11 @@ function DisasterMapView() {
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-2/3" />
         </div>
-      ));
-    }
+      ))}
+    </>
+  );
 
+  const renderContent = () => {
     if (error) {
       return (
         <Alert variant="destructive">
@@ -69,7 +106,11 @@ function DisasterMapView() {
       );
     }
 
-    if (disasters.length === 0) {
+    if (isInitialLoading) {
+      return renderSkeletons();
+    }
+
+    if (disasters.length === 0 && !isLoadingMore) {
       return (
         <Alert>
           <AlertCircle className="h-4 w-4" />
@@ -81,7 +122,21 @@ function DisasterMapView() {
     }
 
     return (
-      <Disaster disasters={disasters} onHoverDisaster={setHoveredDisasterId} />
+      <>
+        <Disaster
+          disasters={disasters}
+          onHoverDisaster={setHoveredDisasterId}
+        />
+        {isLoadingMore && (
+          <div className="flex justify-center items-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <span className="ml-2 text-sm text-gray-600">
+              Loading more disasters...
+            </span>
+          </div>
+        )}
+        <div ref={ref} className="h-10" />
+      </>
     );
   };
 
