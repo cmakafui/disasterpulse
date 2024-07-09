@@ -11,8 +11,7 @@ import DisasterMap from "../_components/DisasterMap";
 import SourceInfo from "../_components/SourceInfo";
 import NewsComponent from "../_components/NewsComponent";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, Bot } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default async function ViewDisaster({
   params,
@@ -33,15 +32,6 @@ export default async function ViewDisaster({
         </Button>
       </Link>
 
-      <Alert className="mb-6">
-        <Bot className="h-4 w-4" />
-        <AlertTitle>AI-Generated Content</AlertTitle>
-        <AlertDescription>
-          This disaster analysis was generated using artificial intelligence.
-          While we strive for accuracy, please verify critical information.
-        </AlertDescription>
-      </Alert>
-
       <DisasterHeader disaster={disaster} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
@@ -55,7 +45,7 @@ export default async function ViewDisaster({
         <div className="lg:col-span-1 space-y-8">
           <NewsComponent disaster={disaster} />
           <DisasterMap disaster={disaster} />
-          <SourceInfo disaster={disaster} sourceName="ReliefWeb" />
+          <SourceInfo disaster={disaster} />
         </div>
       </div>
     </div>

@@ -23,6 +23,20 @@ export interface DisasterDetail extends DisasterList {
     latest_report_title: string;
     latest_report_date: string;
     latest_report_url: string;
+    latest_report_sources?: Array<{
+      href: string;
+      id: number;
+      name: string;
+      shortname: string;
+      longname: string;
+      spanish_name?: string;
+      homepage: string;
+      disclaimer?: string;
+      type: {
+        id: number;
+        name: string;
+      };
+    }>;
     type: string;
     analysis: {
       executive_summary?: string;
@@ -33,7 +47,7 @@ export interface DisasterDetail extends DisasterList {
         }>;
       };
       impact_analysis?: {
-        affected_people?: number;
+        affected_people?: number | null;
         economic_impact?: string;
         infrastructure_damage?: string;
       };

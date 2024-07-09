@@ -161,6 +161,7 @@ async def analyze_report(
         "latest_report_title": latest_report.title,
         "latest_report_date": latest_report.date_created.isoformat(),
         "latest_report_url": latest_report.url,
+        "latest_report_sources": latest_report.source,
         "type": "report",
         "analysis": report_analysis.model_dump(),
     }

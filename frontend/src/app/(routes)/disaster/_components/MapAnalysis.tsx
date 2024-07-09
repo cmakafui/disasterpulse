@@ -3,6 +3,13 @@ import Image from "next/image";
 import { DisasterDetail } from "@/lib/types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Bot } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MapAnalysisProps {
   disaster: DisasterDetail;
@@ -16,8 +23,24 @@ export default function MapAnalysis({ disaster }: MapAnalysisProps) {
 
   return (
     <Card className="mb-8">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle>Map Analysis</CardTitle>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                <Bot className="h-4 w-4" />
+                <span>AI-Generated</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                This map analysis was generated using AI and may not be fully
+                accurate. Please verify important information.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardHeader>
       <CardContent>
         {mapImageUrl && (

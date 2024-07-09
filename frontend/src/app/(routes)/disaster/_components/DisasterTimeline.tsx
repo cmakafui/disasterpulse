@@ -1,6 +1,12 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Bot } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TimelineEvent {
   date: string;
@@ -14,8 +20,24 @@ interface DisasterTimelineProps {
 const DisasterTimeline: React.FC<DisasterTimelineProps> = ({ events }) => {
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Disaster Timeline</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-2xl font-bold">Disaster Timeline</CardTitle>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                <Bot className="h-4 w-4" />
+                <span>AI-Generated</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                This timeline was generated using AI and may not be fully
+                accurate. Please verify important information.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardHeader>
       <CardContent>
         <div className="space-y-8">
