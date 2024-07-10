@@ -26,7 +26,7 @@ async def read_root():
 
 
 @app.get("/health")
-async def read_root():
+async def health():
     return {"status": "ok"}
 
 
