@@ -2,6 +2,8 @@
 
 DisasterPulse is a comprehensive real-time disaster monitoring and analysis platform that empowers communities with AI-driven insights and global coverage of disaster events. The project consists of three main components: a FastAPI backend, an asynchronous data synchronization service, and a Next.js frontend.
 
+Visit live platform: https://disasterpulse.guatanga.xyz
+
 ## Features
 
 - **Global Coverage**: Monitor disasters worldwide with our comprehensive tracking system.
