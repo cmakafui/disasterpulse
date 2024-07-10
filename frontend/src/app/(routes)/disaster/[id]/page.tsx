@@ -26,7 +26,7 @@ export default async function ViewDisaster({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Link href="/" passHref>
+      <Link href="/updates" passHref>
         <Button variant="outline" className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Disasters
         </Button>

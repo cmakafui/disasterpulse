@@ -1,3 +1,4 @@
+// components/Header.tsx
 "use client";
 import React from "react";
 import Link from "next/link";
@@ -8,14 +9,17 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 const Header = () => {
   const pathname = usePathname();
-  const navItems = [{ href: "/", label: "Disasters" }];
+  const navItems = [
+    { href: "/", label: "Home" },
+    { href: "/updates", label: "Updates" },
+  ];
 
   return (
-    <header className="p-6 px-10 flex justify-between items-center shadow-sm fixed top-0 w-full z-10 bg-white">
+    <header className="p-6 px-10 flex justify-between items-center shadow-md fixed top-0 w-full z-10 bg-white backdrop-blur-md bg-opacity-75">
       <div className="flex gap-12 items-center">
         <Link href="/">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 text-transparent bg-clip-text">
-            Disasterpulse
+            DisasterPulse
           </h1>
         </Link>
         <nav className="hidden md:flex gap-10">
@@ -37,9 +41,9 @@ const Header = () => {
       </div>
       <div className="flex gap-2">
         <SignedOut>
-          <Link href="/sign-in">
+          {/* <Link href="/sign-in">
             <Button variant="outline">Login for PulseInsight AI</Button>
-          </Link>
+          </Link> */}
         </SignedOut>
         <SignedIn>
           <Button>

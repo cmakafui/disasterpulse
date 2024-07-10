@@ -9,7 +9,7 @@ function Provider({ children }: Props) {
   return (
     <div>
       <Header />
-      <div className="mt-32">{children}</div>
+      <div className="mt-[5rem]">{children}</div> {/* Adjusted margin-top */}
     </div>
   );
 }
